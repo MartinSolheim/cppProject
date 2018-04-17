@@ -42,14 +42,16 @@ int main(int argc, char *argv[])
     tw.setColumnCount(3);
 
     //input table size
-    tw2.setRowCount(5);
-    tw2.setColumnCount(3);
+    tw2.setRowCount(0);
+    tw2.setColumnCount(4);
 
     QStringList headerList;
     headerList << "crypto" << "price" << "% change 24h";
+    tw.setFixedWidth(500);
+    tw2.setFixedWidth(500);
     tw.setHorizontalHeaderLabels(headerList);
     QStringList headerListInput;
-    headerListInput << "crypto" << "amount" << "buyPrice";
+    headerListInput << "crypto" << "amount" << "buyPrice" << "profit";
     tw2.setHorizontalHeaderLabels(headerListInput);
 
 
@@ -92,6 +94,7 @@ int main(int argc, char *argv[])
                 tw.setItem(i,0, new QTableWidgetItem(json1["id"].toString()));
                 tw.setItem(i,1, new QTableWidgetItem(json1["price_usd"].toString()));
                 tw.setItem(i,2, new QTableWidgetItem(json1["percent_change_24h"].toString()));
+                //tw.itemAt(i,2)->setBackgroundColor("#ff8080");
             }
         }
         reply->deleteLater();
@@ -113,17 +116,28 @@ int main(int argc, char *argv[])
 
         QJsonObject tmpObj = vm0[currencyDropDown.currentIndex()].toJsonObject();
         QString val0 = tmpObj["price_usd"].toString();
+        QString valId = tmpObj["id"].toString();
         int val = val0.toDouble();
 
         double am = amount.value();
         int bp = buyPrice.text().toInt();
         int pro = profitFunc(val, am, bp);
 
+        //for testing
         cout << "cur dropdown ting: " << currencyDropDown.currentIndex() << endl  << "val: " << val << endl << "amount: " << am << endl << "buyPrice: " << bp << endl << "pro output: " << pro << endl;
+
+        //setter farge på %change
         if(pro > 0) profit.setStyleSheet("background-color: #66ff66");
         else profit.setStyleSheet("background-color: #ff8080");
         profit.setValue(pro);
-    });
+
+        tw2.setRowCount(tw2.rowCount()+1);
+        tw2.setItem(tw2.rowCount()-1, 0, new QTableWidgetItem(valId));
+        tw2.setItem(tw2.rowCount()-1, 1, new QTableWidgetItem(QString::number(am)));
+        tw2.setItem(tw2.rowCount()-1, 2, new QTableWidgetItem(QString::number(bp)));
+        tw2.setItem(tw2.rowCount()-1, 3, new QTableWidgetItem(QString::number(pro)));
+
+});
 
     widget.show();
     return a.exec();
