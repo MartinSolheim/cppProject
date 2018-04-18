@@ -10,7 +10,9 @@ using namespace std;
 using std::cout;
 using std::endl;
 
-int profitFunc(int value, double amount, int buyPrice);
+int profitFunc(double value, double amount, int buyPrice);
+void appendTableItem(QStandardItemModel twm2, string id, int amount, int buyPrice, int profit);
+//void deleteTableItem(QTableWidget tw);
 
 //https://api.coinmarketcap.com/v1/ticker/
 int main(int argc, char *argv[])
@@ -32,27 +34,30 @@ int main(int argc, char *argv[])
     profit.setReadOnly(true);
 
     //now-value table
-    QTableWidget tw;
+    QTableView tw;
+    QStandardItemModel *twm = new QStandardItemModel(10, 3);
+    tw.setModel(twm);
 
     //input table
-    QTableWidget tw2;
+    QTableView tw2;
+    QStandardItemModel *twm2 = new QStandardItemModel(0, 4);
+    tw2.setModel(twm2);
 
     //now-value table size
-    tw.setRowCount(10);
-    tw.setColumnCount(3);
+    //tw.setColumnCount(3);
 
     //input table size
-    tw2.setRowCount(0);
-    tw2.setColumnCount(4);
+    //tw2.setRowCount(0);
+    //tw2.setColumnCount(4);
 
     QStringList headerList;
     headerList << "crypto" << "price" << "% change 24h";
     tw.setFixedWidth(500);
     tw2.setFixedWidth(500);
-    tw.setHorizontalHeaderLabels(headerList);
+    twm->setHorizontalHeaderLabels(headerList);
     QStringList headerListInput;
     headerListInput << "crypto" << "amount" << "buyPrice" << "profit";
-    tw2.setHorizontalHeaderLabels(headerListInput);
+    twm2->setHorizontalHeaderLabels(headerListInput);
 
 
     //QVBoxLayout *Vlayout = new QVBoxLayout();
@@ -91,9 +96,10 @@ int main(int argc, char *argv[])
                 QJsonObject json1 = vm0[i].toJsonObject();
 
                 currencyDropDown.addItem(json1["id"].toString());
-                tw.setItem(i,0, new QTableWidgetItem(json1["id"].toString()));
-                tw.setItem(i,1, new QTableWidgetItem(json1["price_usd"].toString()));
-                tw.setItem(i,2, new QTableWidgetItem(json1["percent_change_24h"].toString()));
+                twm->setItem(i,0, new QStandardItem(json1["id"].toString()));
+                //tw.setItem(i,0, new QTableWidgetItem(json1["id"].toString()));
+                twm->setItem(i,1, new QStandardItem(json1["price_usd"].toString()));
+                twm->setItem(i,2, new QStandardItem(json1["percent_change_24h"].toString()));
                 //tw.itemAt(i,2)->setBackgroundColor("#ff8080");
             }
         }
@@ -117,7 +123,7 @@ int main(int argc, char *argv[])
         QJsonObject tmpObj = vm0[currencyDropDown.currentIndex()].toJsonObject();
         QString val0 = tmpObj["price_usd"].toString();
         QString valId = tmpObj["id"].toString();
-        int val = val0.toDouble();
+        double val = val0.toDouble();
 
         double am = amount.value();
         int bp = buyPrice.text().toInt();
@@ -130,12 +136,16 @@ int main(int argc, char *argv[])
         if(pro > 0) profit.setStyleSheet("background-color: #66ff66");
         else profit.setStyleSheet("background-color: #ff8080");
         profit.setValue(pro);
+        //appendTableItem(twm2, valId, am, bp, pro);
 
-        tw2.setRowCount(tw2.rowCount()+1);
-        tw2.setItem(tw2.rowCount()-1, 0, new QTableWidgetItem(valId));
-        tw2.setItem(tw2.rowCount()-1, 1, new QTableWidgetItem(QString::number(am)));
-        tw2.setItem(tw2.rowCount()-1, 2, new QTableWidgetItem(QString::number(bp)));
-        tw2.setItem(tw2.rowCount()-1, 3, new QTableWidgetItem(QString::number(pro)));
+
+    twm2->setRowCount(twm2->rowCount()+1);
+    twm2->setItem(twm2->rowCount()-1, 0, new QStandardItem(valId));
+    twm2->setItem(twm2->rowCount()-1, 1, new QStandardItem(QString::number(am)));
+    twm2->setItem(twm2->rowCount()-1, 2, new QStandardItem(QString::number(bp)));
+    twm2->setItem(twm2->rowCount()-1, 3, new QStandardItem(QString::number(pro)));
+
+
 
 });
 
@@ -143,6 +153,20 @@ int main(int argc, char *argv[])
     return a.exec();
 }
 
-int profitFunc(int value, double amount, int buyPrice){
+void appendTableItem(QStandardItemModel* twm2, QString id, double amount, int buyPrice, int profit){
+    /*
+    twm2->setRowCount(twm2->rowCount()+1);
+    twm2->setItem(twm2->rowCount()-1, 0, new QStandardItem(id));
+    twm2->setItem(twm2->rowCount()-1, 1, new QStandardItem(QString::number(amount)));
+    twm2->setItem(twm2->rowCount()-1, 2, new QStandardItem(QString::number(buyPrice)));
+    twm2->setItem(twm2->rowCount()-1, 3, new QStandardItem(QString::number(profit)));
+    */
+}
+/*
+void deleteTableItem(QTableWidget tw){
+
+}
+*/
+int profitFunc(double value, double amount, int buyPrice){
     return (amount*value) - buyPrice;
 }
