@@ -1,0 +1,23 @@
+[
+        {
+            "Currency": "BTC",
+			"Value": 1000
+        },
+        {
+            "Currency": "IOTA",
+			"Value": 2000
+        },
+        {
+            "Currency": "BAS",
+			"Value": 100000
+        },{
+            "Currency": "MARTIN",
+			"Value": 3000
+        },{
+            "Currency": "MARTIN2",
+			"Value": 30004
+        },{
+            "Currency": "MARTIN50",
+			"Value": 300040
+        }
+    ]
