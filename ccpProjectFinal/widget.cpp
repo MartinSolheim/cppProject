@@ -11,8 +11,10 @@ Widget::Widget(QWidget *parent)
     : QWidget(parent)
 {
     drawWidget();
+    showChart();
     currencyGetData();
     table1GetData();
+
 
 }
 
@@ -37,25 +39,8 @@ void Widget::drawWidget(){
     chartView = new QChartView();
         chartView->setRenderHint(QPainter::Antialiasing);
 
+    chart = new QChart();
     series = new QPieSeries();
-
-
-        series->append("Jane", 2000);
-        series->append("Joe", 1000);
-        series->append("Andy", 2000);
-        series->append("Barbara", 3000);
-        series->append("Axel", 2000);
-        series->setLabelsVisible();
-        series->setLabelsPosition(QPieSlice::LabelInsideHorizontal);
-
-        for(int i = 0;i<5;i++){
-            QPieSlice *slice = series->slices().at(i);
-            slice->setPen(QPen(Qt::white, 1));
-            slice->setBrush(Qt::green);
-
-        }
-        chartView->chart()->addSeries(series);
-
 
     //Tables Layout
     table1 = new QTableView();
@@ -76,10 +61,13 @@ void Widget::drawWidget(){
     QObject::connect(saveButton, SIGNAL(clicked(bool)),this,SLOT(saveOnClick()));
     loadButton = new QPushButton("Load data");
     QObject::connect(loadButton, SIGNAL(clicked(bool)),this,SLOT(loadOnClick()));
+    clearButton = new QPushButton("Clear table");
+    QObject::connect(clearButton, SIGNAL(clicked(bool)),this,SLOT(clearOnClick()));
 
     QHBoxLayout*buttonLayout = new QHBoxLayout;
     buttonLayout->addWidget(saveButton);
     buttonLayout->addWidget(loadButton);
+    buttonLayout->addWidget(clearButton);
 
     QVBoxLayout*table2ButtonLayout = new QVBoxLayout();
     table2ButtonLayout->addLayout(buttonLayout);
@@ -150,8 +138,55 @@ void Widget::drawWidget(){
 
 }
 
+//Loading chart
+void Widget::showChart(){
+
+    QVector<QString>currencyName;
+    QVector<double>currencyMarket;
+
+    //Open file
+    QString text;
+    QFile file;
+    file.setFileName("../ccpProjectFinal/source/currencyData.json");
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    text = file.readAll();
+    file.close();
+
+    QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
+    QJsonArray jArray = jResponse.array();
+
+    foreach(const QJsonValue & value, jArray){
+            QJsonObject object = value.toObject();
+            currencyName.push_back(object["name"].toString());
+            currencyMarket.push_back(object["market_cap_usd"].toString().toDouble());
+    }
+
+
+
+    for(int i=0;i < 10; i++){
+        series->append(currencyName.at(i),currencyMarket.at(i));
+    }
+    series->setLabelsVisible();
+    series->setLabelsPosition(QPieSlice::LabelInsideHorizontal);
+
+    for(int i = 0;i<10;i++){
+        QPieSlice *slice = series->slices().at(i);
+        slice->setPen(QPen(Qt::white, 1));
+        slice->setBrush(Qt::lightGray);
+    }
+
+    chart->addSeries(series);
+    chart->setTitle("Market");
+    chart->legend()->hide();
+
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setChart(chart);
+}
+
 //JSON to combobox
 void Widget::currencyGetData(){
+
+    QVector<QString>currencyName;
 
     //Open file
     QString text;
@@ -166,8 +201,15 @@ void Widget::currencyGetData(){
 
     foreach(const QJsonValue & value, jArray){
         QJsonObject object = value.toObject();
-        currencyCBox->addItem(object["name"].toString());
+        currencyName.push_back(object["name"].toString());
     }
+
+    //List only first objects
+    for(int i=0; i < 10; i++){
+            currencyCBox->addItem(currencyName.at(i));
+    }
+
+
 }
 
 //JSON to table1(Price list)
@@ -197,7 +239,7 @@ void Widget::table1GetData(){
     }
 
 
-
+    //List only first objects
     for(int i=0;i < 10; i++){
         QStandardItem* name = new QStandardItem(QString(currencyName.at(i)));
         QStandardItem* value = new QStandardItem(QString::number(currencyValue.at(i)));
@@ -232,7 +274,7 @@ void Widget::profitOnClick(){
         if(currencyCBox->currentText() == object["name"].toString()){
 
                 total = profitCalc(object["price_usd"].toString().toDouble(), amount ,buyPrice);
-                qDebug()<< total;
+                //qDebug()<< total;
 
                 QStandardItem* itemCurrency = new QStandardItem(QString(currencyCBox->currentText()));
                 QStandardItem* itemAmount = new QStandardItem(QString::number(amount));
@@ -284,8 +326,10 @@ void Widget::saveOnClick(){
                    }
 
                }
+
     }
 
+//Load table2(Price bought)
 void Widget::loadOnClick(){
 
     QString filename = QFileDialog::getOpenFileName(
@@ -310,9 +354,17 @@ void Widget::loadOnClick(){
             file.close();
         }
 
-
-
 }
+
+//Clear table
+void Widget::clearOnClick(){
+    table2Model->clear();
+
+    table2Model->setColumnCount(4);
+    table2Model->setHorizontalHeaderLabels(QStringList()<<"Currency"<<"Value"<<"Buy price"<<"Profit");
+}
+
+
 
 
 

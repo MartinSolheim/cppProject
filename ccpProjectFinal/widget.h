@@ -23,6 +23,7 @@ public:
     void drawWidget();
     void currencyGetData();
     void table1GetData();
+    void showChart();
 
 
 private:
@@ -33,6 +34,7 @@ private:
 
     //Chart
     QChartView* chartView;
+    QChart* chart;
     QPieSeries *series;
 
 
@@ -44,6 +46,7 @@ private:
 
     QPushButton* saveButton;
     QPushButton* loadButton;
+    QPushButton* clearButton;
 
     //Profit Layout///////////
     //Currency
@@ -65,6 +68,7 @@ private slots:
     void profitOnClick();
     void saveOnClick();
     void loadOnClick();
+    void clearOnClick();
 
 
 
