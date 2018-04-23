@@ -11,10 +11,12 @@
 #include <QMenu>
 #include <QMenuBar>
 
-#include <QtCharts/QPieSeries>
-#include <QtCharts/QPieSlice>
 #include <QtCharts/QChartView>
 #include <QtCharts/QChart>
+#include <QtCharts/QStackedBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QLegend>
 
 //Tools
 #include <QFile>
@@ -24,5 +26,9 @@
 #include <QJsonValue>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QtNetwork/QtNetwork>
+#include <iostream>
+
+#include <QVector>
 
 #endif // INCLUDES_H

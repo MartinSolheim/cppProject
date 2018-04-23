@@ -6,16 +6,15 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
+using namespace std;
+using std::cout;
+using std::endl;
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
 {
+    fetchData();
     drawWidget();
-    showChart();
-    currencyGetData();
-    table1GetData();
-
-
 }
 
 Widget::~Widget()
@@ -23,24 +22,62 @@ Widget::~Widget()
 
 }
 
+void Widget::fetchData(){
+
+
+    cout << "før network greier" << endl;
+    cout << "isEmpty før connect: " << jsonArray.isEmpty() << endl;
+    QObject::connect(&networkManager, &QNetworkAccessManager::finished,
+                     [&](QNetworkReply* reply){
+
+        cout << "inne i network. før if" << endl;
+        if(reply->error() != QNetworkReply::NoError){
+            cout << "network connection feil" << endl;
+            networkManager.clearAccessCache();
+        } else {
+
+            //Hele json teksten
+            jsonArray = QJsonDocument::fromJson(reply->readAll()).array();
+            //Liste med alle array elementene
+            //vm0 = jsonArray.toVariantList();
+            //QString vm = "";
+            //looper gjennom for å søke på IDen.
+            cout << "INNE isEmpty: " << jsonArray.isEmpty() << endl;
+        }
+        reply->deleteLater();
+    });
+    //query om nødvendig
+    //QUrlQuery query;
+    //query.addQueryItem("id", "bitcoin");
+    QUrl url("https://api.coinmarketcap.com/v1/ticker/?limit=11");
+    //kanskje vi får bruk for det
+    //url.setQuery(query);
+    QNetworkRequest networkRequest(url);
+    networkManager.get(networkRequest);
+
+}
+
 void Widget::drawWidget(){
     ////////////////////////Layout///////////////////////////////
 
     //Menu Layout
+
     fileMenu = new QMenu("File");
     fileMenu->addAction("Save");
     fileMenu->addAction("Load");
     fileMenu->addAction("Exit");
     menuBar = new QMenuBar();
-        menuBar->addMenu(fileMenu);
+    menuBar->addMenu(fileMenu);
 
 
     //Chart
     chartView = new QChartView();
-        chartView->setRenderHint(QPainter::Antialiasing);
+    //chartView->setRenderHint(QPainter::Antialiasing);
 
     chart = new QChart();
-    series = new QPieSeries();
+    series = new QStackedBarSeries();
+    //QChart *chart1 = new QChart();
+    //QStackedBarSeries *series1 = new QStackedBarSeries();
 
     //Tables Layout
     table1 = new QTableView();
@@ -124,63 +161,64 @@ void Widget::drawWidget(){
     mainLayout->addLayout(tablesLayout);
     mainLayout->addLayout(profitLayout);
 
-
     setLayout(mainLayout);
-    setMinimumSize(800, 600);
+    setMinimumSize(800, 1000);
     layout()->setMenuBar(menuBar);
     setWindowTitle("Crypto");
-    setWindowIcon(QIcon("../ccpProjectFinal/source/currencyIcon.png"));
+    setWindowIcon(QIcon("../ccpProjectFinal/source/Bitcoin-icon.png"));
     setAutoFillBackground(false);
-
-    //Stylesheet
-    //setStyleSheet("background-color:lightblue;");
-    //table1->setStyleSheet("background-color:white;");
 
 }
 
 //Loading chart
 void Widget::showChart(){
 
+    series->clear();
     QVector<QString>currencyName;
-    QVector<double>currencyMarket;
+    QVector<double>percentChange;
 
-    //Open file
-    QString text;
-    QFile file;
-    file.setFileName("../ccpProjectFinal/source/currencyData.json");
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    text = file.readAll();
-    file.close();
+    QBarSet *plus = new QBarSet("Negative % change");
+    QBarSet *minus = new QBarSet("Positive % change");
 
-    QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
-    QJsonArray jArray = jResponse.array();
+    QStringList curList;
 
-    foreach(const QJsonValue & value, jArray){
+    foreach(const QJsonValue & value, jsonArray){
             QJsonObject object = value.toObject();
             currencyName.push_back(object["name"].toString());
-            currencyMarket.push_back(object["market_cap_usd"].toString().toDouble());
+            curList.append((object["name"].toString()));
+            percentChange.push_back(object["percent_change_24h"].toString().toDouble());
+    }
+
+    for(int i = 0; i < 10; i++){
+        if(percentChange.at(i) > 0){
+            *plus << percentChange.at(i);
+            *minus << 0;
+        } else{
+            *minus << percentChange.at(i);
+            *plus << 0;
+        }
     }
 
 
+    series->append(plus);
+    series->append(minus);
 
-    for(int i=0;i < 10; i++){
-        series->append(currencyName.at(i),currencyMarket.at(i));
-    }
-    series->setLabelsVisible();
-    series->setLabelsPosition(QPieSlice::LabelInsideHorizontal);
-
-    for(int i = 0;i<10;i++){
-        QPieSlice *slice = series->slices().at(i);
-        slice->setPen(QPen(Qt::white, 1));
-        slice->setBrush(Qt::lightGray);
-    }
+    QBarCategoryAxis *axis = new QBarCategoryAxis();
+    axis->append(curList);
+    axis->setTitleText("Percent Change last 24 hours");
 
     chart->addSeries(series);
+    chart->createDefaultAxes();
+    chart->setAxisX(axis, series);
+    chart->axisY(series)->setRange(-25, 25);
+    chart->axisY(series)->setTitleText("%change");
     chart->setTitle("Market");
-    chart->legend()->hide();
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->legend()->setVisible(true);
 
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setChart(chart);
+
 }
 
 //JSON to combobox
@@ -188,6 +226,7 @@ void Widget::currencyGetData(){
 
     QVector<QString>currencyName;
 
+    /*
     //Open file
     QString text;
     QFile file;
@@ -198,8 +237,8 @@ void Widget::currencyGetData(){
 
     QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
     QJsonArray jArray = jResponse.array();
-
-    foreach(const QJsonValue & value, jArray){
+    */
+    foreach(const QJsonValue & value, jsonArray){
         QJsonObject object = value.toObject();
         currencyName.push_back(object["name"].toString());
     }
@@ -208,8 +247,6 @@ void Widget::currencyGetData(){
     for(int i=0; i < 10; i++){
             currencyCBox->addItem(currencyName.at(i));
     }
-
-
 }
 
 //JSON to table1(Price list)
@@ -219,7 +256,7 @@ void Widget::table1GetData(){
     QVector<double>currencyValue;
 
 
-
+    /*
     //Open file
     QString text;
     QFile file;
@@ -230,12 +267,12 @@ void Widget::table1GetData(){
 
     QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
     QJsonArray jArray = jResponse.array();
+    */
 
-    foreach(const QJsonValue & value, jArray){
+    foreach(const QJsonValue & value, jsonArray){
             QJsonObject object = value.toObject();
             currencyName.push_back(object["name"].toString());
             currencyValue.push_back(object["price_usd"].toString().toDouble());
-
     }
 
 
@@ -252,10 +289,15 @@ void Widget::table1GetData(){
 //Calculate on table2(Price bought)
 void Widget::profitOnClick(){
 
+
+    currencyGetData();
+    table1GetData();
+    showChart();
+
     double amount = amountDSBox->value();
     int buyPrice = buyPriceSBox->value();
     double total;
-
+    /*
     QString text;
     QFile file;
     file.setFileName("../ccpProjectFinal/source/currencyData.json");
@@ -265,11 +307,11 @@ void Widget::profitOnClick(){
 
     QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
     QJsonArray jArray = jResponse.array();
-
+    */
     //int row =  table2->rowCount();
     //table2->setRowCount(row+1);
 
-    foreach(const QJsonValue & value, jArray){
+    foreach(const QJsonValue & value, jsonArray){
         QJsonObject object = value.toObject();
         if(currencyCBox->currentText() == object["name"].toString()){
 
@@ -363,22 +405,3 @@ void Widget::clearOnClick(){
     table2Model->setColumnCount(4);
     table2Model->setHorizontalHeaderLabels(QStringList()<<"Currency"<<"Value"<<"Buy price"<<"Profit");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

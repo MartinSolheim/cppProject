@@ -2,11 +2,13 @@
 #define WIDGET_H
 
 #include <QWidget>
+#include <QtWidgets>
 #include <includes.h>
 
 #include <QDebug>
 #include <QChartView>
 #include <QStandardItem>
+#include <QtNetwork/QtNetwork>
 
 QT_CHARTS_USE_NAMESPACE
 
@@ -20,13 +22,17 @@ public:
     ~Widget();
 
     //Widget functions
+    void fetchData();
     void drawWidget();
     void currencyGetData();
     void table1GetData();
     void showChart();
 
 
+
 private:
+    QJsonArray jsonArray;
+    QNetworkAccessManager networkManager;
 
     //Menu bar
     QMenuBar* menuBar;
@@ -35,7 +41,7 @@ private:
     //Chart
     QChartView* chartView;
     QChart* chart;
-    QPieSeries *series;
+    QStackedBarSeries* series;
 
 
     //Table view Layout/////////////

@@ -1,6 +1,6 @@
 #include <calculations.h>
 
-double profitCalc(double currency, double amount,int buyPrice){
+double profitCalc(double value, double amount,int buyPrice){
 
-    return (buyPrice*amount)-(currency*amount);
+    return (value*amount) - buyPrice;
 }
