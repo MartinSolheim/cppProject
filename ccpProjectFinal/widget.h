@@ -70,11 +70,26 @@ private:
     //Profit button
     QPushButton* profitButton;
 
+    //Init button
+    QPushButton* initButton;
+
+    //Timer to fetch values every 5 min
+    QTimer timer;
+    bool timerIsRunning;
+
+    //Calculating variables
+    double amount;
+    int buyPrice;
+    double total;
+
 private slots:
     void profitOnClick();
     void saveOnClick();
     void loadOnClick();
     void clearOnClick();
+    void initOnClick();
+    void timerFunc();
+    void updateProfit();
 
 
 

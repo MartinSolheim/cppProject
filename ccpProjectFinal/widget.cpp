@@ -24,7 +24,6 @@ Widget::~Widget()
 
 void Widget::fetchData(){
 
-
     cout << "før network greier" << endl;
     cout << "isEmpty før connect: " << jsonArray.isEmpty() << endl;
     QObject::connect(&networkManager, &QNetworkAccessManager::finished,
@@ -39,19 +38,13 @@ void Widget::fetchData(){
             //Hele json teksten
             jsonArray = QJsonDocument::fromJson(reply->readAll()).array();
             //Liste med alle array elementene
-            //vm0 = jsonArray.toVariantList();
-            //QString vm = "";
+
             //looper gjennom for å søke på IDen.
             cout << "INNE isEmpty: " << jsonArray.isEmpty() << endl;
         }
         reply->deleteLater();
     });
-    //query om nødvendig
-    //QUrlQuery query;
-    //query.addQueryItem("id", "bitcoin");
-    QUrl url("https://api.coinmarketcap.com/v1/ticker/?limit=11");
-    //kanskje vi får bruk for det
-    //url.setQuery(query);
+    QUrl url("https://api.coinmarketcap.com/v1/ticker/?limit=10");
     QNetworkRequest networkRequest(url);
     networkManager.get(networkRequest);
 
@@ -60,31 +53,21 @@ void Widget::fetchData(){
 void Widget::drawWidget(){
     ////////////////////////Layout///////////////////////////////
 
-    //Menu Layout
-
-    fileMenu = new QMenu("File");
-    fileMenu->addAction("Save");
-    fileMenu->addAction("Load");
-    fileMenu->addAction("Exit");
-    menuBar = new QMenuBar();
-    menuBar->addMenu(fileMenu);
-
 
     //Chart
     chartView = new QChartView();
-    //chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setRenderHint(QPainter::Antialiasing);
 
     chart = new QChart();
     series = new QStackedBarSeries();
-    //QChart *chart1 = new QChart();
-    //QStackedBarSeries *series1 = new QStackedBarSeries();
 
     //Tables Layout
     table1 = new QTableView();
     table1Model = new QStandardItemModel;
 
-    table1Model->setColumnCount(2);
-    table1Model->setHorizontalHeaderLabels(QStringList()<<"Currency"<<"Value");
+    table1->setColumnWidth(2, 35);
+    table1Model->setColumnCount(3);
+    table1Model->setHorizontalHeaderLabels(QStringList()<<"Currency"<<"Value"<<"% Change, 24h");
     table1->setModel(table1Model);
 
     table2 = new QTableView();
@@ -128,7 +111,7 @@ void Widget::drawWidget(){
     //Amount Layout
     amountLabel = new QLabel("Amount:");
     amountDSBox = new QDoubleSpinBox;
-        amountDSBox->setRange(0.0,1000000);
+    amountDSBox->setRange(0.0,1000000);
 
     QHBoxLayout* amountLayout = new QHBoxLayout;
     amountLayout->addWidget(amountLabel);
@@ -137,16 +120,19 @@ void Widget::drawWidget(){
     //Buy price Layout
     buyPriceLabel = new QLabel("Buy price:");
     buyPriceSBox = new QSpinBox;
-        buyPriceSBox->setRange(0, 1000000);
+    buyPriceSBox->setRange(0, 1000000);
 
     QHBoxLayout* buyPriceLayout = new QHBoxLayout;
     buyPriceLayout->addWidget(buyPriceLabel);
     buyPriceLayout->addWidget(buyPriceSBox);
 
     //Profit Button
-    profitButton = new QPushButton("Beregn");
-
+    profitButton = new QPushButton("Legg til");
     QObject::connect(profitButton, SIGNAL(clicked(bool)),this,SLOT(profitOnClick()));
+
+
+    initButton = new QPushButton("Start tracking");
+    QObject::connect(initButton, SIGNAL(clicked(bool)), this, SLOT(initOnClick()));
 
     //Profit calculations Layout
     QVBoxLayout* profitLayout = new QVBoxLayout;
@@ -154,6 +140,8 @@ void Widget::drawWidget(){
     profitLayout->addLayout(amountLayout);
     profitLayout->addLayout(buyPriceLayout);
     profitLayout->addWidget(profitButton);
+    profitLayout->addWidget(initButton);
+
 
     //Main Layout////////////////////////
     QVBoxLayout* mainLayout = new QVBoxLayout;
@@ -163,11 +151,9 @@ void Widget::drawWidget(){
 
     setLayout(mainLayout);
     setMinimumSize(800, 1000);
-    layout()->setMenuBar(menuBar);
     setWindowTitle("Crypto");
     setWindowIcon(QIcon("../ccpProjectFinal/source/Bitcoin-icon.png"));
     setAutoFillBackground(false);
-
 }
 
 //Loading chart
@@ -177,15 +163,16 @@ void Widget::showChart(){
     QVector<QString>currencyName;
     QVector<double>percentChange;
 
-    QBarSet *plus = new QBarSet("Negative % change");
-    QBarSet *minus = new QBarSet("Positive % change");
+    QBarSet *plus = new QBarSet("Positive % change");
+    QBarSet *minus = new QBarSet("Negative % change");
 
     QStringList curList;
+    int topValue = 0;
 
     foreach(const QJsonValue & value, jsonArray){
             QJsonObject object = value.toObject();
             currencyName.push_back(object["name"].toString());
-            curList.append((object["name"].toString()));
+            curList.append((object["symbol"].toString()));
             percentChange.push_back(object["percent_change_24h"].toString().toDouble());
     }
 
@@ -193,9 +180,11 @@ void Widget::showChart(){
         if(percentChange.at(i) > 0){
             *plus << percentChange.at(i);
             *minus << 0;
+            if(percentChange.at(i) > topValue) topValue = percentChange.at(i);
         } else{
             *minus << percentChange.at(i);
             *plus << 0;
+            if(percentChange.at(i) * -1 > topValue) topValue = percentChange.at(i) * -1;
         }
     }
 
@@ -205,20 +194,19 @@ void Widget::showChart(){
 
     QBarCategoryAxis *axis = new QBarCategoryAxis();
     axis->append(curList);
-    axis->setTitleText("Percent Change last 24 hours");
+    axis->setTitleText("Currency");
 
     chart->addSeries(series);
     chart->createDefaultAxes();
     chart->setAxisX(axis, series);
-    chart->axisY(series)->setRange(-25, 25);
+    chart->axisY(series)->setRange(-topValue, topValue);
     chart->axisY(series)->setTitleText("%change");
-    chart->setTitle("Market");
+    //chart->setTitle("Last updated: " + );
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->legend()->setVisible(true);
 
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setChart(chart);
-
 }
 
 //JSON to combobox
@@ -226,18 +214,8 @@ void Widget::currencyGetData(){
 
     QVector<QString>currencyName;
 
-    /*
-    //Open file
-    QString text;
-    QFile file;
-    file.setFileName("../ccpProjectFinal/source/currencyData.json");
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    text = file.readAll();
-    file.close();
+    currencyCBox->clear();
 
-    QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
-    QJsonArray jArray = jResponse.array();
-    */
     foreach(const QJsonValue & value, jsonArray){
         QJsonObject object = value.toObject();
         currencyName.push_back(object["name"].toString());
@@ -252,71 +230,75 @@ void Widget::currencyGetData(){
 //JSON to table1(Price list)
 void Widget::table1GetData(){
 
+    table1Model->clear();
+
+    table1Model->setColumnCount(3);
+    table1Model->setHorizontalHeaderLabels(QStringList()<<"Currency"<<"Value"<<"Percent Change 24h");
+
     QVector<QString>currencyName;
     QVector<double>currencyValue;
-
-
-    /*
-    //Open file
-    QString text;
-    QFile file;
-    file.setFileName("../ccpProjectFinal/source/currencyData.json");
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    text = file.readAll();
-    file.close();
-
-    QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
-    QJsonArray jArray = jResponse.array();
-    */
+    QVector<double>percentChange;
 
     foreach(const QJsonValue & value, jsonArray){
             QJsonObject object = value.toObject();
             currencyName.push_back(object["name"].toString());
             currencyValue.push_back(object["price_usd"].toString().toDouble());
+            percentChange.push_back(object["percent_change_24h"].toString().toDouble());
     }
 
 
     //List only first objects
-    for(int i=0;i < 10; i++){
+    for(int i=0; i < 10; i++){
         QStandardItem* name = new QStandardItem(QString(currencyName.at(i)));
         QStandardItem* value = new QStandardItem(QString::number(currencyValue.at(i)));
+        QStandardItem* pc = new QStandardItem(QString::number(percentChange.at(i)));
         table1Model->setItem(i,0,name);
         table1Model->setItem(i,1,value);
+        table1Model->setItem(i,2,pc);
     }
 }
 
 
+//Initialize widget data.
+void Widget::initOnClick(){
+
+    if(!timerIsRunning){
+        initButton->setText(QString("Stop Tracking"));
+        table1GetData();
+        showChart();
+        currencyGetData();
+        timerFunc();
+    }else{
+        initButton->setText(QString("Start Tracking"));
+        timer.stop();
+        timerIsRunning = false;
+    }
+}
+
+void Widget::timerFunc(){
+
+    QObject::connect(&timer, &QTimer::timeout, [&](){
+        fetchData();
+        //currencyGetData();
+        table1GetData();
+        showChart();
+    });
+    timer.start(10*1000);
+    timerIsRunning = true;
+}
+
 //Calculate on table2(Price bought)
 void Widget::profitOnClick(){
 
-
-    currencyGetData();
-    table1GetData();
-    showChart();
-
-    double amount = amountDSBox->value();
-    int buyPrice = buyPriceSBox->value();
-    double total;
-    /*
-    QString text;
-    QFile file;
-    file.setFileName("../ccpProjectFinal/source/currencyData.json");
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
-    text = file.readAll();
-    file.close();
-
-    QJsonDocument jResponse = QJsonDocument::fromJson(text.toUtf8());
-    QJsonArray jArray = jResponse.array();
-    */
-    //int row =  table2->rowCount();
-    //table2->setRowCount(row+1);
+    amount = amountDSBox->value();
+    buyPrice = buyPriceSBox->value();
+    total = 0;
 
     foreach(const QJsonValue & value, jsonArray){
         QJsonObject object = value.toObject();
         if(currencyCBox->currentText() == object["name"].toString()){
 
-                total = profitCalc(object["price_usd"].toString().toDouble(), amount ,buyPrice);
-                //qDebug()<< total;
+                total = profitCalc(object["price_usd"].toString().toDouble(), amount, buyPrice);
 
                 QStandardItem* itemCurrency = new QStandardItem(QString(currencyCBox->currentText()));
                 QStandardItem* itemAmount = new QStandardItem(QString::number(amount));
@@ -330,9 +312,25 @@ void Widget::profitOnClick(){
                 table2Model->setItem(table2Model->rowCount()-1,1,itemAmount);
                 table2Model->setItem(table2Model->rowCount()-1,2,itemBuyPrice);
                 table2Model->setItem(table2Model->rowCount()-1,3,itemProfit);
-
         }
+    }
+}
 
+void Widget::updateProfit(){
+    amount = amountDSBox->value();
+    buyPrice = buyPriceSBox->value();
+    total = 0;
+
+    foreach(const QJsonValue & value, jsonArray){
+        QJsonObject object = value.toObject();
+        if(currencyCBox->currentText() == object["name"].toString()){
+
+                total = profitCalc(object["price_usd"].toString().toDouble(), amount, buyPrice);
+                QStandardItem* itemProfit = new QStandardItem(QString::number(total));
+
+                //table2Model->setRowCount(table2Model->rowCount()+1);
+                table2Model->setItem(table2Model->rowCount()-1,3,itemProfit);
+        }
     }
 }
 
@@ -366,9 +364,7 @@ void Widget::saveOnClick(){
                        }
                        file.close();
                    }
-
                }
-
     }
 
 //Load table2(Price bought)
@@ -395,7 +391,6 @@ void Widget::loadOnClick(){
             }
             file.close();
         }
-
 }
 
 //Clear table
