@@ -10,6 +10,10 @@ using namespace std;
 using std::cout;
 using std::endl;
 
+/* Martin Solheim, s305033
+ * Suphakin Riempraser, s315572
+*/
+
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
 {
@@ -151,8 +155,6 @@ void Widget::drawWidget(){
     setWindowTitle("Crypto");
     setWindowIcon(QIcon("../ccpProjectFinal/source/Bitcoin-icon.png"));
     setAutoFillBackground(false);
-
-
 }
 
 //Loading chart
@@ -290,24 +292,7 @@ void Widget::table1GetData(){
     }
 }
 
-
-//Initialize widget data.
-void Widget::initOnClick(){
-
-    if(!timerIsRunning){
-        table1GetData();
-        showChart();
-        currencyGetData();
-        timer.start(6*1000);
-        timerIsRunning = true;
-        initButton->setText("Stop Tracking");
-    }else{
-        timer.stop();
-        timerIsRunning = false;
-        initButton->setText("Start Tracking");
-    }
-}
-
+//Timer funksjon som blir kalt annenhvert minutt.
 void Widget::timerFunc(){
 
     QObject::connect(&timer, &QTimer::timeout, [&](){
@@ -317,6 +302,46 @@ void Widget::timerFunc(){
         currencyGetData();
         updateProfit();
     });
+}
+
+//Oppdater funksjon som regner hvor mye man har tjent eller tapt etter et knappetrykk
+//Kalkulasjonen blir vist på kjøpt-tabellen(høyre)
+void Widget::updateProfit(){
+    amount = 0;
+    buyPrice = 0;
+    total = 0;
+
+    if(table2Model->rowCount() > 0){
+        for(int i = 0; i < table2Model->rowCount()-1; i++){
+
+            object = jsonArray[i].toObject();
+            cout << "updateProfit arraySize: " << jsonArray.size() << endl;
+            amount = table2Model->item(i, 1)->text().toDouble();
+            buyPrice = table2Model->item(i, 2)->text().toInt();
+
+            total = profitCalc(object["price_usd"].toString().toDouble(), amount, buyPrice);
+            QStandardItem* itemProfit = new QStandardItem(QString::number(total));
+
+            table2Model->setItem(i,3,itemProfit);
+        }
+    }
+}
+
+//Initialize widget funksjon. Starter en timer som henter ny data og oppdaterer tabellene og chart.
+void Widget::initOnClick(){
+
+    if(!timerIsRunning){
+        table1GetData();
+        showChart();
+        currencyGetData();
+        timer.start(120*1000);
+        timerIsRunning = true;
+        initButton->setText("Stop Tracking");
+    }else{
+        timer.stop();
+        timerIsRunning = false;
+        initButton->setText("Start Tracking");
+    }
 }
 
 //Slot funksjon som regner hvor mye man har tjent eller tapt etter et knappetrykk
@@ -359,28 +384,7 @@ void Widget::profitOnClick(){
     }
 }
 
-//Slot funksjon som regner hvor mye man har tjent eller tapt etter et knappetrykk
-//Kalkulasjonen blir vist på kjøpt-tabellen(høyre)
-void Widget::updateProfit(){
-    amount = 0;
-    buyPrice = 0;
-    total = 0;
 
-    if(table2Model->rowCount() > 0){
-        for(int i = 0; i < table2Model->rowCount()-1; i++){
-
-            object = jsonArray[i].toObject();
-            cout << "updateProfit arraySize: " << jsonArray.size() << endl;
-            amount = table2Model->item(i, 1)->text().toDouble();
-            buyPrice = table2Model->item(i, 2)->text().toInt();
-
-            total = profitCalc(object["price_usd"].toString().toDouble(), amount, buyPrice);
-            QStandardItem* itemProfit = new QStandardItem(QString::number(total));
-
-            table2Model->setItem(i,3,itemProfit);
-        }
-    }
-}
 
 //Slot funksjon som lagrer alle dataene fra table1(høyre) i en CSV-fil
 void Widget::saveOnClick(){
