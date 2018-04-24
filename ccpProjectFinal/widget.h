@@ -27,11 +27,14 @@ public:
     void currencyGetData();
     void table1GetData();
     void showChart();
-
+    void timerFunc();
+    void updateProfit();
+    void updatePrice();
 
 
 private:
     QJsonArray jsonArray;
+    QJsonArray ja;
     QNetworkAccessManager networkManager;
 
     //Menu bar
@@ -82,14 +85,15 @@ private:
     int buyPrice;
     double total;
 
+    QJsonObject object;
+
 private slots:
     void profitOnClick();
     void saveOnClick();
     void loadOnClick();
     void clearOnClick();
     void initOnClick();
-    void timerFunc();
-    void updateProfit();
+
 
 
 
