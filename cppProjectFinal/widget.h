@@ -87,6 +87,7 @@ private:
     double total;
 
     QJsonObject object;
+    QMessageBox* errorbox;
 
 //slots funksjoner som vi deklarerer for å utføre forskjellige operasjoner ved et knappetrykk
 //som å lagre og laste opp fil og oppdatere diagrammet

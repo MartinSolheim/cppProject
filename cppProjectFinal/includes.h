@@ -34,5 +34,6 @@
 #include <QChartView>
 #include <QStandardItem>
 #include <QtNetwork/QtNetwork>
+#include <QMessageBox>
 
 #endif // INCLUDES_H

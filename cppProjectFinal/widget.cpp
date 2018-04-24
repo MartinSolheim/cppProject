@@ -381,6 +381,11 @@ void Widget::profitOnClick(){
                 table2Model->setItem(table2Model->rowCount()-1,2,itemBuyPrice);
                 table2Model->setItem(table2Model->rowCount()-1,3,itemProfit);
         }
+        //Hvis teksten ikke matcher med et JSON-objekt
+        errorbox = new QMessageBox;
+        errorbox->setWindowTitle("Error!");
+        errorbox->setText("Could not load file");
+        errorbox->exec();
     }
 }
 
@@ -451,7 +456,10 @@ void Widget::loadOnClick(){
     //Så kommer det opp et advarsel
     if ( !file.open(QFile::ReadOnly | QFile::Text) ) {
             //Det blir tilkalt et vindu med feilmeldinger
-            qDebug() << "File not exists";
+            errorbox = new QMessageBox;
+            errorbox->setWindowTitle("Error!");
+            errorbox->setText("Could not load file");
+            errorbox->exec();
         }
         //Hvis man kan åpne fila
         else {
