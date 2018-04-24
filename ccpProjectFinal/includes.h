@@ -1,7 +1,7 @@
 #ifndef INCLUDES_H
 #define INCLUDES_H
 
-//Widgets
+//QtGUI klasse- Widget
 #include <QTableWidget>
 #include <QLabel>
 #include <QDoubleSpinBox>
@@ -18,7 +18,7 @@
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QLegend>
 
-//Tools
+//Qt klasse- Verktøy
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -30,5 +30,9 @@
 #include <iostream>
 #include <QVector>
 #include <time.h>
+#include <QDebug>
+#include <QChartView>
+#include <QStandardItem>
+#include <QtNetwork/QtNetwork>
 
 #endif // INCLUDES_H
