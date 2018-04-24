@@ -5,11 +5,6 @@
 #include <QtWidgets>
 #include <includes.h>
 
-#include <QDebug>
-#include <QChartView>
-#include <QStandardItem>
-#include <QtNetwork/QtNetwork>
-
 QT_CHARTS_USE_NAMESPACE
 
 
@@ -21,7 +16,7 @@ public:
     Widget(QWidget *parent = 0);
     ~Widget();
 
-    //Widget functions
+    //Widget funksjoner
     void fetchData();
     void drawWidget();
     void currencyGetData();
@@ -40,18 +35,25 @@ private:
     QMenuBar* menuBar;
     QMenu*fileMenu;
 
-    //Chart
+    //Qtgui klasser- Objekter
+
+    //BarChart layout///////
+    //Diagram(BarChart)
     QChartView* chartView;
     QChart* chart;
     QStackedBarSeries* series;
 
-
-    //Table view Layout/////////////
+    //TableViews layout///////
+    //Filhåndterings knapper(QPushButton)
     QTableView* table1;
     QStandardItemModel *table1Model;
+
+    //Kjøpt table(Tableview)
     QTableView* table2;
     QStandardItemModel *table2Model;
 
+    //Profit(Input) Layout///////////
+    //Value input(Currency)
     QPushButton* saveButton;
     QPushButton* loadButton;
     QPushButton* clearButton;
@@ -61,15 +63,15 @@ private:
     QLabel*currencyLabel;
     QComboBox* currencyCBox;
 
-    //Amount
+    //Mengde input(Amount)
     QLabel* amountLabel;
     QDoubleSpinBox* amountDSBox;
 
-    //Buy price
+    //Kjøpspris input(BuyPrice)
     QLabel*buyPriceLabel;
     QSpinBox* buyPriceSBox;
 
-    //Profit button
+    //Fortjeneste submit(Profit)
     QPushButton* profitButton;
 
     //Init button
@@ -86,17 +88,14 @@ private:
 
     QJsonObject object;
 
+//slots funksjoner som vi deklarerer for å utføre forskjellige operasjoner ved et knappetrykk
+//som å lagre og laste opp fil og oppdatere diagrammet
 private slots:
     void profitOnClick();
     void saveOnClick();
     void loadOnClick();
     void clearOnClick();
     void initOnClick();
-
-
-
-
-
 };
 
 #endif // WIDGET_H
