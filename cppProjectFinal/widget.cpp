@@ -384,7 +384,7 @@ void Widget::profitOnClick(){
         //Hvis teksten ikke matcher med et JSON-objekt
         errorbox = new QMessageBox;
         errorbox->setWindowTitle("Error!");
-        errorbox->setText("Could not load file");
+        errorbox->setText("Input do not match JSON object!");
         errorbox->exec();
     }
 }
