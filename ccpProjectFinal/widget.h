@@ -29,7 +29,6 @@ public:
     void showChart();
     void timerFunc();
     void updateProfit();
-    void updatePrice();
 
 
 private:
