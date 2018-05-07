@@ -36,7 +36,3 @@ HEADERS += \
     calculations.h \
     includes.h
 
-#Chart install
-target.path = $$[QT_INSTALL_EXAMPLES]/charts/piechart
-INSTALLS += target
-

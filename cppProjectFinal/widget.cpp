@@ -381,11 +381,6 @@ void Widget::profitOnClick(){
                 table2Model->setItem(table2Model->rowCount()-1,2,itemBuyPrice);
                 table2Model->setItem(table2Model->rowCount()-1,3,itemProfit);
         }
-        //Hvis teksten ikke matcher med et JSON-objekt
-        errorbox = new QMessageBox;
-        errorbox->setWindowTitle("Error!");
-        errorbox->setText("Input do not match JSON object!");
-        errorbox->exec();
     }
 }
 
