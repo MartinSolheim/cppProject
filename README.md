@@ -1,5 +1,5 @@
 # C++ project 2018
-Developed by @basiibas and me.
+Developed by [@basiibas](https://github.com/basiibas) and me.
 
 
 ### Crypto currency portfolio in Qt Creator as a final project for the course "Efficient coding in C and C++" at Oslo Metropolitan University 2018
