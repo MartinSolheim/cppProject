@@ -8,7 +8,7 @@ Developed by [@basiibas](https://github.com/basiibas) and me.
 
 * Fetches the current 15 biggest crypto currencies based on market cap.
 * Updates the values/profit/graph every 2 minutes.
-* Calculates your profit.
+* Calculates your profit/loss.
 * Shows a graph of percent changes the last 24 hours.
 * Graph scales to the most extreme positive or negative value
 
