@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
+
 using namespace std;
 using std::cout;
 using std::endl;
@@ -67,6 +68,7 @@ void Widget::drawWidget(){
 
     table1->setModel(table1Model);
     table1Model->setHorizontalHeaderLabels(QStringList()<<"Currency"<<"Value"<<"%Change 24h");
+
 
 
     //TableViews layout///////
@@ -206,6 +208,7 @@ void Widget::showChart(){
     axis->append(curList);
     axis->setTitleText("Currency");
 
+    chart->removeSeries(series);
     chart->addSeries(series);
     chart->createDefaultAxes();
     chart->setAxisX(axis, series);
@@ -223,7 +226,7 @@ void Widget::showChart(){
 void Widget::currencyGetData(){
 
     //Deklarerer en ny vektor av typen QString
-    cout << jsonArray.count() << endl;
+    //cout << jsonArray.count() << endl;
 
     //Deklarerer en vector av typen QString
     //Hvis vektoren er ikke tomt så blir det tømmet

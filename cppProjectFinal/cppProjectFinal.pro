@@ -40,3 +40,7 @@ HEADERS += \
 target.path = $$[QT_INSTALL_EXAMPLES]/charts/piechart
 INSTALLS += target
 
+FORMS += \
+    form.ui \
+    form.ui
+
