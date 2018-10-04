@@ -11,5 +11,6 @@ Developed by [@basiibas](https://github.com/basiibas) and me.
 * Calculates your profit/loss.
 * Shows a graph of percent changes the last 24 hours.
 * Graph scales to the most extreme positive or negative value
+* Save/load portfolio to csv
 
 Could use some UI improvements, but Qt Creator is too clunky to bother.
